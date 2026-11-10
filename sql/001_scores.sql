@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS scores (
+  id BIGSERIAL PRIMARY KEY,
+  rid TEXT NOT NULL UNIQUE,
+  speler TEXT NOT NULL,
+  agent TEXT NOT NULL,
+  kleur TEXT,
+  email TEXT,
+  score INTEGER NOT NULL,
+  gasten INTEGER,
+  tevredenheid INTEGER,
+  ts TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  email_opgegeven BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX IF NOT EXISTS scores_score_desc_idx ON scores (score DESC);
