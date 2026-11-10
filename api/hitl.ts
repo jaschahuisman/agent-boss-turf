@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { askClaudeJson } from "../lib/claude.js";
+import { askLlmJson } from "../lib/llm.js";
 import { methodNotAllowed, readJsonBody } from "../lib/http.js";
 import { hitlPrompt } from "../lib/prompts.js";
 
@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: "invalid_body" });
     }
 
-    const json = await askClaudeJson(
+    const json = await askLlmJson(
       hitlPrompt({
         key: body.key,
         answer: String(body.answer),
@@ -39,6 +39,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(json);
   } catch (err) {
     console.error("POST /api/hitl", err);
-    return res.status(500).json({ error: "claude_failed" });
+    return res.status(500).json({ error: "llm_failed" });
   }
 }
