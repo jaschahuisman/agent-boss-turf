@@ -22,34 +22,30 @@
   }
   html, body { height: 100%; margin: 0; }
   body {
-    background: #050d0e;
+    background: var(--ink);
     color: var(--text);
     font-family: var(--sans);
     overflow: hidden;
-    cursor: none;
   }
-  #stage {
+  @media (hover: hover) and (pointer: fine) { body { cursor: none; } }
+  .scr {
     position: fixed;
     inset: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-  }
-  .scr {
-    position: relative;
-    width: 1280px;
-    height: 720px;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    box-sizing: border-box;
     overflow: hidden;
     background: var(--ink);
-    flex: none;
-    transform-origin: center center;
   }
   .glow {
     position: absolute;
-    left: 240px;
-    top: -140px;
-    width: 800px;
-    height: 620px;
+    left: 50%;
+    top: -20vh;
+    width: min(800px, 120vw);
+    height: 85vh;
+    transform: translateX(-50%);
     border-radius: 50%;
     background: radial-gradient(closest-side, #15313a, #0f2529b3 60%, #08151700);
     pointer-events: none;
@@ -59,7 +55,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    height: 200px;
+    height: 28vh;
     background: var(--deep);
     border-top: 3px solid var(--lime);
     overflow: hidden;
@@ -70,7 +66,7 @@
     left: -50%;
     right: -50%;
     top: 0;
-    height: 640px;
+    height: 300%;
     transform-origin: top;
     transform: perspective(320px) rotateX(58deg);
     background-image:
@@ -78,74 +74,78 @@
       linear-gradient(rgba(173,255,0,.15) 2px, transparent 2px);
     background-size: 64px 64px;
   }
+  h1, .sub, #list, .foot { position: relative; z-index: 1; }
   h1 {
-    position: absolute;
-    top: 36px;
-    left: 0;
-    right: 0;
-    margin: 0;
+    margin: clamp(4px, 2vh, 28px) 0 0;
     text-align: center;
     font-family: var(--pix);
     font-weight: 700;
-    font-size: 60px;
+    font-size: clamp(30px, min(8vw, 8.5vh), 72px);
+    line-height: 1.1;
     color: var(--lime);
-    text-shadow: 0 5px 0 rgba(79,127,0,.8);
+    text-shadow: 0 .08em 0 rgba(79,127,0,.8);
   }
   .sub {
-    position: absolute;
-    top: 112px;
-    left: 0;
-    right: 0;
+    margin: clamp(4px, 1vh, 12px) 0 clamp(10px, 2.5vh, 28px);
     text-align: center;
     font-family: var(--mono);
-    font-size: 14px;
+    font-size: clamp(11px, 1.8vh, 16px);
     color: var(--mute);
   }
   #list {
-    position: absolute;
-    top: 148px;
-    left: 190px;
-    right: 190px;
+    --row: clamp(15px, min(2.6vh, 4.2vw), 40px);
+    flex: 1 1 auto;
+    min-height: 0;
+    width: min(100%, 36em);
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: clamp(4px, .9vh, 10px);
+    overflow-y: auto;
+    scrollbar-width: none;
+    font-size: var(--row);
   }
+  #list::-webkit-scrollbar { display: none; }
   .row {
+    flex: none;
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-columns: 2.4em minmax(0, 1fr) auto;
     align-items: center;
-    gap: 14px;
+    gap: .7em;
     background: rgba(13,32,35,.92);
     border: 2px solid rgba(255,255,255,.1);
     border-radius: 10px;
-    padding: 6px 18px;
+    padding: .35em .85em;
     animation: in .35s ease-out both;
   }
   .row.top { border-color: rgba(255,210,63,.6); }
   .row.fresh { border-color: var(--lime); box-shadow: 0 0 18px rgba(173,255,0,.35); }
-  .rank { font-family: var(--mono); font-weight: 700; font-size: 22px; color: var(--mute); }
+  .rank { font-family: var(--mono); font-weight: 700; font-size: 1.05em; color: var(--mute); }
   .row.top .rank { color: var(--gold); }
-  .who { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  .who i { width: 14px; height: 14px; border-radius: 3px; flex: none; }
+  .who { display: flex; align-items: center; gap: .5em; min-width: 0; }
+  .who i { width: .65em; height: .65em; border-radius: 3px; flex: none; }
   .who span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .who b { font-size: 21px; }
-  .who small { font-size: 15px; font-weight: 700; color: var(--mute); }
-  .score { font-family: var(--mono); font-weight: 700; font-size: 24px; color: var(--lime); }
+  .who b { font-size: 1em; }
+  .who small::before { content: "· "; }
+  .who small { font-size: .72em; font-weight: 700; color: var(--mute); }
+  .score { font-family: var(--mono); font-weight: 700; font-size: 1.15em; color: var(--lime); }
+  @media (max-width: 520px) {
+    .who span { display: flex; flex-direction: column; line-height: 1.2; }
+    .who small { font-size: .7em; }
+    .who small::before { content: none; }
+  }
   .empty {
     text-align: center;
-    margin-top: 120px;
+    margin-top: 12vh;
     font-family: var(--pix);
-    font-size: 24px;
+    font-size: clamp(16px, 3vh, 26px);
     color: var(--mute);
   }
   .foot {
-    position: absolute;
-    bottom: 18px;
-    left: 0;
-    right: 0;
+    flex: none;
+    padding-top: clamp(6px, 1.5vh, 16px);
     text-align: center;
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: clamp(10px, 1.6vh, 13px);
     color: var(--mute);
   }
   .foot.err { color: #ff6b6b; }
@@ -154,30 +154,20 @@
 </style>
 </head>
 <body>
-<div id="stage">
-  <div class="scr" id="scr">
+<div class="scr">
     <div class="glow"></div>
     <div class="floor"><div class="grid"></div></div>
     <h1>SCOREBOARD</h1>
     <div class="sub">Agent Boss · The Borrel Battle</div>
     <div id="list"></div>
     <div class="foot" id="foot">Laden…</div>
-  </div>
 </div>
 <script>
   const POLL_MS = 30000;
   const LIMIT = Math.min(Math.max(parseInt(new URLSearchParams(location.search).get("n") || "10", 10) || 10, 1), 50);
   const list = document.getElementById("list");
   const foot = document.getElementById("foot");
-  const scr = document.getElementById("scr");
   let known = null;
-
-  function fit() {
-    const s = Math.min(innerWidth / 1280, innerHeight / 720);
-    scr.style.transform = `scale(${s})`;
-  }
-  addEventListener("resize", fit);
-  fit();
 
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const fmt = (n) => Number(n || 0).toLocaleString("nl-NL");
@@ -193,7 +183,7 @@
         const cls = ["row", i === 0 ? "top" : "", fresh ? "fresh" : ""].join(" ");
         return `<div class="${cls}" style="animation-delay:${(i * 0.05).toFixed(2)}s">
           <span class="rank">${i + 1}</span>
-          <span class="who"><i style="background:${color(r.kleur)}"></i><span><b>${esc(r.agent)}</b> <small>· ${esc(r.speler)}</small></span></span>
+          <span class="who"><i style="background:${color(r.kleur)}"></i><span><b>${esc(r.agent)}</b> <small>${esc(r.speler)}</small></span></span>
           <span class="score">${fmt(r.score)}</span>
         </div>`;
       }).join("");
