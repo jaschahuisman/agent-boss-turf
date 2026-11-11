@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Agent Boss · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #081517;
+    --deep: #0d2023;
+    --panel: #1e3a3e;
+    --lime: #adff00;
+    --gold: #ffd23f;
+    --red: #ff6b6b;
+    --text: #ffffff;
+    --mute: #93b5ba;
+    --pix: "Silkscreen", "Courier New", monospace;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+    --sans: "Trebuchet MS", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+  }
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
+  h1 { margin: 0 0 4px; font-family: var(--pix); font-size: 36px; color: var(--lime); }
+  .sub { color: var(--mute); margin-bottom: 24px; }
+  .sub a { color: var(--mute); }
+  input, button { font: inherit; }
+  input {
+    background: var(--deep);
+    color: var(--text);
+    border: 2px solid var(--panel);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  input:focus { outline: none; border-color: var(--lime); }
+  button {
+    cursor: pointer;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 700;
+    background: var(--panel);
+    color: var(--text);
+  }
+  button:hover { filter: brightness(1.2); }
+  button:disabled { opacity: .5; cursor: default; }
+  button.primary { background: var(--lime); color: var(--ink); }
+  button.danger { background: transparent; color: var(--red); border: 2px solid rgba(255,107,107,.5); padding: 6px 12px; }
+  #login { display: flex; gap: 10px; max-width: 420px; }
+  #login input { flex: 1; }
+  .msg { margin-top: 10px; min-height: 20px; color: var(--red); }
+  .bar { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .bar input { flex: 1; }
+  .count { color: var(--mute); font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--mute);
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--panel);
+  }
+  td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align: middle; }
+  td.num { font-family: var(--mono); font-weight: 700; text-align: right; }
+  td.rank { font-family: var(--mono); color: var(--mute); width: 40px; }
+  td.date { font-family: var(--mono); font-size: 12px; color: var(--mute); white-space: nowrap; }
+  td.mail { font-size: 13px; color: var(--mute); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  td.acts { white-space: nowrap; text-align: right; }
+  td.acts button + button { margin-left: 6px; }
+  .agent { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+  .agent i { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+  .player { font-size: 13px; color: var(--mute); }
+  tr.hidden td:not(.acts) { opacity: .4; }
+  .tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(255,107,107,.15);
+    color: var(--red);
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ADMIN</h1>
+  <div class="sub">Scores verbergen of verwijderen · <a href="/scoreboard" target="_blank">scoreboard bekijken</a></div>
+
+  <section id="auth">
+    <form id="login">
+      <input id="pw" type="password" placeholder="Admin-wachtwoord" autocomplete="current-password" required>
+      <button class="primary" type="submit">Inloggen</button>
+    </form>
+    <div class="msg" id="loginMsg"></div>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="bar">
+      <input id="filter" type="search" placeholder="Zoek op naam, agent of e-mail…">
+      <span class="count" id="count"></span>
+      <button id="refresh" type="button">Vernieuwen</button>
+      <button id="logout" type="button">Uitloggen</button>
+    </div>
+    <div class="msg" id="panelMsg"></div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Agent / speler</th><th>E-mail</th><th style="text-align:right">Score</th><th>Datum</th><th></th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+</main>
+<script>
+  const KEY = "agentboss.admin";
+  const $ = (id) => document.getElementById(id);
+  let rows = [];
+
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const fmt = (n) => Number(n || 0).toLocaleString("nl-NL");
+  const color = (c) => (/^#[0-9a-f]{3,8}$/i.test(c || "") ? c : "#adff00");
+  const date = (ts) => new Date(ts).toLocaleString("nl-NL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+  async function api(method, body) {
+    const res = await fetch("/api/admin", {
+      method,
+      headers: {
+        authorization: `Bearer ${sessionStorage.getItem(KEY) || ""}`,
+        ...(body ? { "content-type": "application/json" } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (res.status === 401) throw Object.assign(new Error("Verkeerd wachtwoord."), { auth: true });
+    if (res.status === 503) throw Object.assign(new Error("Admin staat uit: ADMIN_PASSWORD is niet ingesteld."), { auth: true });
+    if (!res.ok) throw new Error(`Er ging iets mis (HTTP ${res.status}).`);
+    return res.json();
+  }
+
+  function showLogin(message) {
+    sessionStorage.removeItem(KEY);
+    $("panel").hidden = true;
+    $("auth").hidden = false;
+    $("loginMsg").textContent = message || "";
+    $("pw").focus();
+  }
+
+  function render() {
+    const q = $("filter").value.trim().toLowerCase();
+    let rank = 0;
+    const ranked = rows.map((r) => ({ ...r, rank: r.hidden ? null : ++rank }));
+    const shown = q
+      ? ranked.filter((r) => [r.agent, r.speler, r.email].some((v) => String(v || "").toLowerCase().includes(q)))
+      : ranked;
+    const hiddenCount = rows.filter((r) => r.hidden).length;
+    $("count").textContent = `${rows.length} scores · ${hiddenCount} verborgen`;
+    $("rows").innerHTML = shown.map((r) => `
+      <tr class="${r.hidden ? "hidden" : ""}">
+        <td class="rank">${r.rank ?? "–"}</td>
+        <td>
+          <div class="agent"><i style="background:${color(r.kleur)}"></i>${esc(r.agent)}${r.hidden ? '<span class="tag">verborgen</span>' : ""}</div>
+          <div class="player">${esc(r.speler)}</div>
+        </td>
+        <td class="mail" title="${esc(r.email)}">${esc(r.email) || "–"}</td>
+        <td class="num">${fmt(r.score)}</td>
+        <td class="date">${date(r.ts)}</td>
+        <td class="acts">
+          <button type="button" data-rid="${esc(r.rid)}" data-act="${r.hidden ? "unhide" : "hide"}">${r.hidden ? "Tonen" : "Verbergen"}</button>
+          <button type="button" class="danger" data-rid="${esc(r.rid)}" data-act="delete">Verwijderen</button>
+        </td>
+      </tr>`).join("") || `<tr><td colspan="6" style="color:var(--mute)">Geen scores gevonden.</td></tr>`;
+  }
+
+  async function load() {
+    $("panelMsg").textContent = "";
+    try {
+      rows = (await api("GET")).rows || [];
+      $("auth").hidden = true;
+      $("panel").hidden = false;
+      render();
+    } catch (err) {
+      if (err.auth) showLogin(err.message);
+      else $("panelMsg").textContent = err.message;
+    }
+  }
+
+  $("login").addEventListener("submit", (e) => {
+    e.preventDefault();
+    sessionStorage.setItem(KEY, $("pw").value);
+    $("pw").value = "";
+    load();
+  });
+
+  $("rows").addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    const { rid, act } = btn.dataset;
+    const row = rows.find((r) => r.rid === rid);
+    if (act === "delete" && !confirm(`"${row?.agent} · ${row?.speler}" definitief verwijderen?`)) return;
+    btn.disabled = true;
+    try {
+      await api("POST", { rid, action: act });
+      await load();
+    } catch (err) {
+      btn.disabled = false;
+      if (err.auth) showLogin(err.message);
+      else $("panelMsg").textContent = err.message;
+    }
+  });
+
+  $("filter").addEventListener("input", render);
+  $("refresh").addEventListener("click", load);
+  $("logout").addEventListener("click", () => showLogin());
+
+  if (sessionStorage.getItem(KEY)) load();
+  else showLogin();
+</script>
+</body>
+</html>

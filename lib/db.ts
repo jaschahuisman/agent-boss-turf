@@ -35,6 +35,9 @@ async function ensureSchema() {
   await q`
     CREATE INDEX IF NOT EXISTS scores_score_desc_idx ON scores (score DESC)
   `;
+  await q`
+    ALTER TABLE scores ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT FALSE
+  `;
 }
 
 export async function initDb() {
@@ -97,6 +100,7 @@ export async function fetchScoreboard(limit: number) {
   const rows = await q`
     SELECT rid, speler, agent, kleur, score, gasten, tevredenheid, ts
     FROM scores
+    WHERE NOT hidden
     ORDER BY score DESC, ts ASC
     LIMIT ${n}
   `;
@@ -111,4 +115,47 @@ export async function fetchScoreboard(limit: number) {
     tevredenheid: number | null;
     ts: string;
   }>;
+}
+
+export async function fetchAllScores() {
+  await initDb();
+  const q = getSql();
+
+  const rows = await q`
+    SELECT rid, speler, agent, kleur, email, score, gasten, tevredenheid, ts, hidden
+    FROM scores
+    ORDER BY score DESC, ts ASC
+    LIMIT 500
+  `;
+
+  return rows as Array<{
+    rid: string;
+    speler: string;
+    agent: string;
+    kleur: string | null;
+    email: string | null;
+    score: number;
+    gasten: number | null;
+    tevredenheid: number | null;
+    ts: string;
+    hidden: boolean;
+  }>;
+}
+
+export async function setScoreHidden(rid: string, hidden: boolean) {
+  await initDb();
+  const q = getSql();
+  const rows = await q`
+    UPDATE scores SET hidden = ${hidden} WHERE rid = ${rid} RETURNING rid
+  `;
+  return (rows as unknown[]).length > 0;
+}
+
+export async function deleteScore(rid: string) {
+  await initDb();
+  const q = getSql();
+  const rows = await q`
+    DELETE FROM scores WHERE rid = ${rid} RETURNING rid
+  `;
+  return (rows as unknown[]).length > 0;
 }
