@@ -74,7 +74,7 @@
       linear-gradient(rgba(173,255,0,.15) 2px, transparent 2px);
     background-size: 64px 64px;
   }
-  h1, .sub, #list, .foot { position: relative; z-index: 1; }
+  h1, .brand, #list, .foot { position: relative; z-index: 1; }
   h1 {
     margin: clamp(4px, 2vh, 28px) 0 0;
     text-align: center;
@@ -85,12 +85,28 @@
     color: var(--lime);
     text-shadow: 0 .08em 0 rgba(79,127,0,.8);
   }
-  .sub {
+  .brand {
     margin: clamp(4px, 1vh, 12px) 0 clamp(10px, 2.5vh, 28px);
     text-align: center;
-    font-family: var(--mono);
-    font-size: clamp(11px, 1.8vh, 16px);
-    color: var(--mute);
+    line-height: 1.1;
+  }
+  .brand-main {
+    display: block;
+    font-family: var(--pix);
+    font-weight: 700;
+    font-size: clamp(20px, 3.2vh, 32px);
+    letter-spacing: 1px;
+    color: var(--lime);
+    text-shadow: 0 .12em 0 rgba(79, 127, 0, .8);
+  }
+  .brand-sub {
+    display: block;
+    margin-top: 4px;
+    font-family: var(--pix);
+    font-weight: 700;
+    font-size: clamp(12px, 2vh, 18px);
+    color: #fff;
+    text-shadow: 0 .1em 0 rgba(79, 127, 0, .55);
   }
   #list {
     --row: clamp(15px, min(2.6vh, 4.2vw), 40px);
@@ -158,7 +174,10 @@
     <div class="glow"></div>
     <div class="floor"><div class="grid"></div></div>
     <h1>SCOREBOARD</h1>
-    <div class="sub">Agent Boss · The Borrel Battle</div>
+    <div class="brand">
+      <span class="brand-main">AGENT BOSS</span>
+      <span class="brand-sub">THE BORREL BATTLE</span>
+    </div>
     <div id="list"></div>
     <div class="foot" id="foot">Laden…</div>
 </div>
