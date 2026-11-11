@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { insertScore } from "../lib/db.js";
+import { checkEmail } from "../lib/email.js";
 import { methodNotAllowed, readJsonBody } from "../lib/http.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -29,12 +30,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: "invalid_body" });
     }
 
+    const email = body.email?.trim();
+    const emailOk = email ? (await checkEmail(email)).ok : false;
+
     await insertScore({
       rid: body.rid.trim(),
       speler: body.speler.trim(),
       agent: body.agent.trim(),
       kleur: body.kleur,
-      email: body.email,
+      email: emailOk ? email : null,
       score: body.score,
       gasten: body.gasten,
       tevredenheid: body.tevredenheid,
