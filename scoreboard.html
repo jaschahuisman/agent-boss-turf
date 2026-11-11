@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Agent Boss · Scoreboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #081517;
+    --deep: #0d2023;
+    --lime: #adff00;
+    --gold: #ffd23f;
+    --text: #ffffff;
+    --mute: #93b5ba;
+    --pix: "Silkscreen", "Courier New", monospace;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+    --sans: "Trebuchet MS", system-ui, sans-serif;
+  }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #050d0e;
+    color: var(--text);
+    font-family: var(--sans);
+    overflow: hidden;
+    cursor: none;
+  }
+  #stage {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scr {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--ink);
+    flex: none;
+    transform-origin: center center;
+  }
+  .glow {
+    position: absolute;
+    left: 240px;
+    top: -140px;
+    width: 800px;
+    height: 620px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, #15313a, #0f2529b3 60%, #08151700);
+    pointer-events: none;
+  }
+  .floor {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 200px;
+    background: var(--deep);
+    border-top: 3px solid var(--lime);
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .grid {
+    position: absolute;
+    left: -50%;
+    right: -50%;
+    top: 0;
+    height: 640px;
+    transform-origin: top;
+    transform: perspective(320px) rotateX(58deg);
+    background-image:
+      linear-gradient(90deg, rgba(173,255,0,.15) 2px, transparent 2px),
+      linear-gradient(rgba(173,255,0,.15) 2px, transparent 2px);
+    background-size: 64px 64px;
+  }
+  h1 {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    right: 0;
+    margin: 0;
+    text-align: center;
+    font-family: var(--pix);
+    font-weight: 700;
+    font-size: 60px;
+    color: var(--lime);
+    text-shadow: 0 5px 0 rgba(79,127,0,.8);
+  }
+  .sub {
+    position: absolute;
+    top: 112px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--mute);
+  }
+  #list {
+    position: absolute;
+    top: 148px;
+    left: 190px;
+    right: 190px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    background: rgba(13,32,35,.92);
+    border: 2px solid rgba(255,255,255,.1);
+    border-radius: 10px;
+    padding: 6px 18px;
+    animation: in .35s ease-out both;
+  }
+  .row.top { border-color: rgba(255,210,63,.6); }
+  .row.fresh { border-color: var(--lime); box-shadow: 0 0 18px rgba(173,255,0,.35); }
+  .rank { font-family: var(--mono); font-weight: 700; font-size: 22px; color: var(--mute); }
+  .row.top .rank { color: var(--gold); }
+  .who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .who i { width: 14px; height: 14px; border-radius: 3px; flex: none; }
+  .who span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .who b { font-size: 21px; }
+  .who small { font-size: 15px; font-weight: 700; color: var(--mute); }
+  .score { font-family: var(--mono); font-weight: 700; font-size: 24px; color: var(--lime); }
+  .empty {
+    text-align: center;
+    margin-top: 120px;
+    font-family: var(--pix);
+    font-size: 24px;
+    color: var(--mute);
+  }
+  .foot {
+    position: absolute;
+    bottom: 18px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--mute);
+  }
+  .foot.err { color: #ff6b6b; }
+  @keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .row { animation: none; } }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="scr" id="scr">
+    <div class="glow"></div>
+    <div class="floor"><div class="grid"></div></div>
+    <h1>SCOREBOARD</h1>
+    <div class="sub">Agent Boss · The Borrel Battle</div>
+    <div id="list"></div>
+    <div class="foot" id="foot">Laden…</div>
+  </div>
+</div>
+<script>
+  const POLL_MS = 30000;
+  const LIMIT = Math.min(Math.max(parseInt(new URLSearchParams(location.search).get("n") || "10", 10) || 10, 1), 50);
+  const list = document.getElementById("list");
+  const foot = document.getElementById("foot");
+  const scr = document.getElementById("scr");
+  let known = null;
+
+  function fit() {
+    const s = Math.min(innerWidth / 1280, innerHeight / 720);
+    scr.style.transform = `scale(${s})`;
+  }
+  addEventListener("resize", fit);
+  fit();
+
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const fmt = (n) => Number(n || 0).toLocaleString("nl-NL");
+  const color = (c) => (/^#[0-9a-f]{3,8}$/i.test(c || "") ? c : "#adff00");
+
+  function render(rows) {
+    const ids = new Set(rows.map((r) => r.rid));
+    if (!rows.length) {
+      list.innerHTML = `<div class="empty">Nog geen scores. Wie begint?</div>`;
+    } else {
+      list.innerHTML = rows.map((r, i) => {
+        const fresh = known && !known.has(r.rid);
+        const cls = ["row", i === 0 ? "top" : "", fresh ? "fresh" : ""].join(" ");
+        return `<div class="${cls}" style="animation-delay:${(i * 0.05).toFixed(2)}s">
+          <span class="rank">${i + 1}</span>
+          <span class="who"><i style="background:${color(r.kleur)}"></i><span><b>${esc(r.agent)}</b> <small>· ${esc(r.speler)}</small></span></span>
+          <span class="score">${fmt(r.score)}</span>
+        </div>`;
+      }).join("");
+    }
+    known = ids;
+  }
+
+  async function load() {
+    try {
+      const res = await fetch(`/api/scoreboard?n=${LIMIT}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const { rows = [] } = await res.json();
+      render(rows);
+      foot.className = "foot";
+      foot.textContent = `Bijgewerkt ${new Date().toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}`;
+    } catch (err) {
+      foot.className = "foot err";
+      foot.textContent = "Scoreboard tijdelijk niet bereikbaar, opnieuw proberen…";
+    }
+  }
+
+  load();
+  setInterval(load, POLL_MS);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+</script>
+</body>
+</html>
