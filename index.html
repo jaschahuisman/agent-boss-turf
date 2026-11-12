@@ -101,10 +101,8 @@ ${F?`<div class="say l" style="left:70px;opacity:1;animation:none"><span class="
 </div>`;P.explain=()=>`${C()}
 <div class="topbar">${X(18)}<span class="grow"></span><button class="btn ghost" data-act="start">Overslaan ⏩</button></div>
 <h1 class="pix abs" style="top:100px;left:0;right:0;margin:0;text-align:center;font-size:52px">WAT IS EEN AGENT?</h1>
-<div class="abs" style="left:190px;right:190px;top:180px;height:400px;border:3px dashed rgba(173,255,0,.55);border-radius:22px;background:rgba(11,28,31,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:30px">
-  <div style="display:flex;align-items:flex-end;gap:22px">${A({kind:"agent",color:"#4fd8e8",mood:"normal",px:3})}${A({kind:"agent",color:"#ffd23f",mood:"work",px:3})}${A({color:"#ff9a45",mood:"happy",px:4})}${A({kind:"agent",color:"#ff6f9c",mood:"thumbs",px:3})}${A({kind:"agent",color:"#4fd1a5",mood:"normal",px:3})}</div>
-  <div style="font-size:24px;font-weight:700">Uitleganimatie volgt</div>
-  <div style="font-size:16px;line-height:1.5;color:var(--mute);max-width:620px">Hier komt een korte animatie (± 30 sec) die uitlegt wat een AI-agent is, en hoe een Agent Boss een team van gespecialiseerde agents aanstuurt.</div>
+<div class="abs" style="left:190px;right:190px;top:180px;height:400px;border:3px dashed rgba(173,255,0,.55);border-radius:22px;background:rgba(11,28,31,.85);display:flex;align-items:center;justify-content:center;padding:16px 20px;overflow:hidden">
+  <video src="/wat-is-een-agent.mp4" controls playsinline autoplay style="width:100%;max-height:100%;border-radius:12px;background:#000;object-fit:contain"></video>
 </div>
 <div class="abs" style="left:0;right:0;bottom:40px;display:flex;justify-content:center"><button class="btn" data-act="start">Start het spel ▶</button></div>`;P.info=()=>{const e=p.cur,s=q(),t=z(e).color;return`${C()}${Q((e?'<span style="font-size:13px;font-weight:700;color:var(--mute)">Speler 1 is klaar ✓</span>':"")+ee(e))}
 ${fe(190,548,240,46,e?"#4b6a6d":"#6e6a58",e?"#2a3d3f":"#3c3a30")}<div class="abs" style="left:208px;top:348px">${A({color:t,mood:"thumbs",px:6})}</div>
